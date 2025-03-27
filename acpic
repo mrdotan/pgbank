@@ -1,0 +1,59 @@
+# Mô hình Đồng bộ DC-DR của IBM API Connect
+
+Mô hình này mô tả kiến trúc đồng bộ giữa Trung tâm Dữ liệu Chính (DC) và Trung tâm Phục hồi Thảm họa (DR) cho hệ thống IBM API Connect, nhằm đảm bảo tính sẵn sàng cao và khả năng phục hồi sau thảm họa.
+
+## Các Thành phần Chính
+
+* **DC (Data Center):** Trung tâm dữ liệu chính, nơi hệ thống hoạt động bình thường.
+* **DR (Disaster Recovery):** Trung tâm dữ liệu dự phòng, được sử dụng khi DC gặp sự cố.
+* **API Connect:** Nền tảng quản lý API của IBM, bao gồm:
+    * **DC API Gateway Cluster:** Cổng API tại DC.
+    * **DR API Gateway Cluster:** Cổng API tại DR.
+    * **DC Analytics Cluster:** Thành phần phân tích dữ liệu tại DC.
+    * **DR Analytics Cluster:** Thành phần phân tích dữ liệu tại DR.
+    * **DC Management Cluster:** Thành phần quản lý cấu hình tại DC.
+    * **DR Management Cluster:** Thành phần quản lý cấu hình tại DR.
+    * **DC Portal Cluster:** Cổng dành cho nhà phát triển tại DC.
+    * **DR Portal Cluster:** Cổng dành cho nhà phát triển tại DR.
+* **App Connect Enterprise (ACE):** Nền tảng tích hợp ứng dụng.
+    * **Integration Server (DC):** Máy chủ tích hợp tại DC.
+    * **Integration Server (DR):** Máy chủ tích hợp tại DR.
+* **IBM MQ:** Phần mềm nhắn tin.
+* **IBM Cloud Pak for Integration (CP4I):** Nền tảng tích hợp đám mây.
+    * **IBM Cloud Pak for Integration Management UI:** Giao diện quản lý CP4I.
+* **IBM Cloud Pak foundation services:** Các dịch vụ nền tảng của Cloud Pak.
+* **Consumers' Applications:** Các ứng dụng khách tiêu thụ API.
+* **Central log:** Hệ thống ghi log tập trung.
+
+## Trạng Thái Hoạt Động
+
+* **Active:** Hoạt động bình thường.
+* **Hot standby:** Dự phòng nóng, sẵn sàng hoạt động ngay lập tức.
+* **Warm standby:** Dự phòng ấm, cần thời gian để khởi động.
+
+## Luồng Dữ Liệu và Đồng Bộ
+
+1.  **Sao lưu và Phục hồi CP4I:**
+    * `(1)`: Sao lưu các instance CP4I/integration từ DC lên Amazon S3 (HTTPS).
+    * `(2)`: Phục hồi các instance CP4I/integration từ Amazon S3 vào DR (HTTPS).
+2.  **Đồng bộ Cấu hình Quản lý:**
+    * `(3)`: Đẩy cấu hình từ DC Management sang DC/DR API Gateway (HTTPS).
+    * `(4)`: Đồng bộ cấu hình từ DC Management sang DC/DR Analytics (HTTPS).
+    * `(5)`: Đẩy cấu hình từ DC Management sang DC Portal và gọi lại (HTTPS).
+    * `(7)`: Đồng bộ cấu hình từ DR Management sang DC/DR Analytics (HTTPS).
+    * `(8)`: Đẩy cấu hình từ DR Management sang DC/DR API Gateway (HTTPS).
+3.  **Giao tiếp Gateway và ACE:**
+    * `(6)`: Giao tiếp giữa DC API Gateway và DC ACE, DR API Gateway và DR ACE (HTTPS).
+4.  **Đồng bộ Thời gian Thực:**
+    * Đồng bộ thời gian thực giữa DC Management và DR Management.
+    * Đồng bộ thời gian thực giữa DC Portal và DR Portal.
+
+## Chú Thích
+
+* Mũi tên đánh số `(1)` - `(8)` thể hiện luồng dữ liệu và đồng bộ giữa DC và DR.
+* HTTPS được sử dụng để đảm bảo an toàn truyền tải dữ liệu.
+* Amazon S3 được sử dụng làm kho lưu trữ sao lưu.
+
+## Hình Ảnh
+
+![Sơ đồ đồng bộ DC-DR của IBM API Connect](dc_dr_diagram.png)
